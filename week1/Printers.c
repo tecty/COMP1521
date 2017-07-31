@@ -73,7 +73,7 @@ void addPrintersJob(Printers pool, int duration, int nowTime)
    int i, minvol, minq;
    minvol = INT_MAX;
    for (i = 0; i < pool->nprinters; i++) {
-      int vol = volumeQueue(pool->queue[i]);
+      int vol = volumeQueue(pool->queue[i]); // add something here would work.
       if (vol < minvol) {
          minvol = vol;
          minq = i;
