@@ -49,9 +49,9 @@ Bits makeBits(int nbits)
 
 
 // calculate the power of 2 by given int
-int power2 (int n){
+unsigned int power2 (int n){
 
-    int answer = 1;
+    unsigned int answer = 1;
     for (int i = 0; i < n; i++) {
         /* multiply answer by 2 */
         answer *=2;
@@ -74,39 +74,84 @@ void  freeBits(Bits b)
 // store result in res Bits
 void andBits(Bits a, Bits b, Bits res)
 {
-   // TODO
+    for(int n = 0; n < b->nwords; n++){
+        // calculate word by word
+        res->words[n]= a->words[n]& b->words[n];
+        
+    }
 }
 
 // form bit-wise OR of two Bits a,b
 // store result in res Bits
 void orBits(Bits a, Bits b, Bits res)
 {
-   // TODO
+    for(int n = 0; n < b->nwords; n++){
+        // calculate word by word
+        res->words[n]= a->words[n] | b->words[n];
+        
+    }
 }
 
 // form bit-wise negation of Bits a,b
 // store result in res Bits
 void invertBits(Bits a, Bits res)
 {
-   // TODO
+    for(int n = 0; n < a->nwords; n++){
+        // calculate word by word
+        res->words[n]= ~ a->words[n];
+        
+    }
 }
 
 // left shift Bits
 void leftShiftBits(Bits b, int shift, Bits res)
 {
-   // challenge problem
+    // ignator of the loop
+    res->words[0] =b-> words[0] << shift;
+
+    for(int n = 1; n < b->nwords; n++){
+        // shift at the words
+        res->words[n] =b-> words[n] << shift;
+        // calculate the overflow part
+        unsigned int remain = b->words[n];
+        for (int p = 0; p < shift; p++) {
+            /* translate algo */
+            res->words[n-1]+=remain/power2(BITS_PER_WORD-p-1)*power2(shift-p-1);
+            // reset the remain
+            remain = remain % power2(BITS_PER_WORD-p-1);
+        }
+        
+    }
 }
 
 // right shift Bits
 void rightShiftBits(Bits b, int shift, Bits res)
 {
-   // challenge problem
+    // ignator of the loop
+    res->words[res->nwords-1] =b-> words[b->nwords-1] >> shift;
+
+    for(int n = b->nwords -2; n >=0; n--){
+        // shift at the words
+        res->words[n] =b-> words[n] >> shift;
+        // calculate the overflow part
+        unsigned int remain = b->words[n]%power2(shift);
+        for (int p = 0; p < shift; p++) {
+            /* translate algo */
+            res->words[n+1]+=remain/power2(shift-p-1)*power2(BITS_PER_WORD-p-1);
+            // reset the remain
+            remain = remain % power2(shift-p-1);
+        }
+        
+    }
 }
 
 // copy value from one Bits object to another
 void setBitsFromBits(Bits from, Bits to)
 {
-   // TODO
+    for(int n = 0; n < from->nwords; n++){
+        // copy from source to destination
+        to->words[n]=from->words[n];
+    }
 }
 
 // assign a bit-string (sequence of 0's and 1's) to Bits
@@ -116,62 +161,66 @@ void setBitsFromString(Bits b, char *bitseq)
     // determine the length of input string
     int len= strlen(bitseq);
     // calculate the words should store
-    int input_nwords = (len-1)/ BITS_PER_WORD + 1;
-    printf("%d\n",input_nwords );
-    printf("b->nwords = %d\n",b->nwords );
-    if (b->nwords != input_nwords) {
-        /* the ADT is not big enough, create a new one */
-        Bits old_bit = b;
-        b = makeBits(input_nwords);
-        printf("imhere\n" );
-        // free the unused one;
-        freeBits(old_bit);
-    }
-    printf("b->nwords = %d\n",b->nwords );
+    //int input_nwords = (len-1)/ BITS_PER_WORD + 1;
+    //printf("%d\n",input_nwords );
+    //printf("b->nwords = %d\n",b->nwords );
+
 
 
     /* convert the sting into int */
 
     //  index of the string array
-    int index = 0;
+    int index = len - 1;
 
-    // tmp store the converted int in this_word
-    int this_word = 0;
-    // most distinguish part, i is the power of this char for this word
-    for (int i =  (len-1)%BITS_PER_WORD; i >= 0; i--) {
-        /* read from the front */
-        this_word += power2(i)*(bitseq[index]-'0');
-        index ++;
-    }
-    // store this_word into ADT
-    b->words[0] = this_word;
 
-    // general part
-    for (int this_word_index = 1; this_word_index < input_nwords; this_word_index++) {
-        /* convert the string into int */
-        for (int i =  BITS_PER_WORD-1; i >= 0; i--) {
-            /* read from the front */
-            this_word += power2(i)*(bitseq[index]-'0');
-            index ++;
+    // scan the char and store it into bits
+    for (int i= b->nwords - 1; i >= 0; i --){
+        // tmp store the converted int in this_word
+        unsigned int this_word = 0;
+        
+        // start translating
+        for (int power = 0; power < BITS_PER_WORD; power ++){
+            if (index - power >= 0){
+                // valid access to the char array
+                this_word += power2(power)*(bitseq[index - power]-'0');
+                
+            }
+            else {
+                // invalid access, break the loop
+                break;
+            }
+        
         }
-
-        // store this_word into ADT
-        b->words[this_word_index] = this_word;
+        // store this word into the bits
+        b->words[i] = this_word;
+        
+        // decreament of the index;
+        index -= BITS_PER_WORD;
+    
+    
+    
     }
-        printf("b->nwords = %d this_word = %d\n",b->nwords, b->words[0] );
+
+    //printf("b->nwords = %d this_word = %d\n",b->nwords, b->words[1] );
 }
 
 // display a Bits value as sequence of 0's and 1's
 void showBits(Bits b)
 {
-    printf(" %d \n", b->nwords);
+    //printf(" %d \n", b->nwords);
 
-    printf("%d\n",b->words[0] );
-    // for (int i = 0; i < b->nwords; i++) {
-    //     /* convert the int into bit and pint out */
-    //     for (int p = BITS_PER_WORD-1; p >=0; p--) {
-    //         /* translate algo */
-    //         printf("%d", b->words[i]/power2(p) );
-    //     }
-    // }
+    //printf("b->words[0] = %d\nb->words[1] = %d\n",b->words[0],b->words[1] );
+    for (int i = 0; i < b->nwords; i++) {
+        /* convert the int into bit and pint out */
+        
+        
+        unsigned int remain = b->words[i];
+        
+        for (int p = BITS_PER_WORD-1; p >=0; p--) {
+            /* translate algo */
+            printf("%d", remain/power2(p) );
+            // reset the remain
+            remain = remain % power2(p);
+        }
+    }
 }
