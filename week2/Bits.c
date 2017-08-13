@@ -51,13 +51,7 @@ Bits makeBits(int nbits)
 // calculate the power of 2 by given int
 unsigned int power2 (int n){
 
-    unsigned int answer = 1;
-    for (int i = 0; i < n; i++) {
-        /* multiply answer by 2 */
-        answer *=2;
-    }
-    //  return it;
-    return answer;
+    return 1u<<n;
 }
 
 
@@ -77,7 +71,7 @@ void andBits(Bits a, Bits b, Bits res)
     for(int n = 0; n < b->nwords; n++){
         // calculate word by word
         res->words[n]= a->words[n]& b->words[n];
-        
+
     }
 }
 
@@ -88,7 +82,7 @@ void orBits(Bits a, Bits b, Bits res)
     for(int n = 0; n < b->nwords; n++){
         // calculate word by word
         res->words[n]= a->words[n] | b->words[n];
-        
+
     }
 }
 
@@ -99,50 +93,78 @@ void invertBits(Bits a, Bits res)
     for(int n = 0; n < a->nwords; n++){
         // calculate word by word
         res->words[n]= ~ a->words[n];
-        
+
     }
 }
 
 // left shift Bits
 void leftShiftBits(Bits b, int shift, Bits res)
 {
-    // ignator of the loop
-    res->words[0] =b-> words[0] << shift;
+    // store the overflow part of bits
+    unsigned int overflow= 0;
+    // store the index of original words
+    int input_index= b->nwords-1;
 
-    for(int n = 1; n < b->nwords; n++){
-        // shift at the words
-        res->words[n] =b-> words[n] << shift;
-        // calculate the overflow part
-        unsigned int remain = b->words[n];
-        for (int p = 0; p < shift; p++) {
-            /* translate algo */
-            res->words[n-1]+=remain/power2(BITS_PER_WORD-p-1)*power2(shift-p-1);
-            // reset the remain
-            remain = remain % power2(BITS_PER_WORD-p-1);
-        }
-        
+    // replaced the won't be replaced part to 0
+    for (int i = b->nwords-1; i >= b->nwords-shift/BITS_PER_WORD && i>=0; i--) {
+        /* running this 0 till the most disting num */
+        res->words[i]=0u;
+
     }
+
+
+    for (int start_word = b->nwords-shift/BITS_PER_WORD -1; start_word >=0; start_word--) {
+        /* get to the start word and intput the data in there */
+        int unit_shift = shift%BITS_PER_WORD;
+
+        // calculate the result for that word;
+        res->words[start_word]=overflow+(b->words[input_index] <<unit_shift);
+        // printf("start_word now is %d\n",start_word );
+        // printf("input without overflow is %d\n", b->words[input_index] <<unit_shift);
+
+
+        // calculate the shifting overflow for next bit
+        overflow = b->words[start_word] >>(BITS_PER_WORD-unit_shift);
+        // decreament the input_index
+        input_index --;
+    }
+
+
+
 }
 
 // right shift Bits
 void rightShiftBits(Bits b, int shift, Bits res)
 {
-    // ignator of the loop
-    res->words[res->nwords-1] =b-> words[b->nwords-1] >> shift;
+    // store the overflow part of bits
+    unsigned int overflow= 0;
+    // store the index of original words
+    int input_index= 0;
 
-    for(int n = b->nwords -2; n >=0; n--){
-        // shift at the words
-        res->words[n] =b-> words[n] >> shift;
-        // calculate the overflow part
-        unsigned int remain = b->words[n]%power2(shift);
-        for (int p = 0; p < shift; p++) {
-            /* translate algo */
-            res->words[n+1]+=remain/power2(shift-p-1)*power2(BITS_PER_WORD-p-1);
-            // reset the remain
-            remain = remain % power2(shift-p-1);
-        }
-        
+    // replaced the won't be replaced part to 0
+    for (int i = 0; i <= b->nwords-shift/BITS_PER_WORD-1 && i< b->nwords; i++) {
+        /* running this 0 till the most disting num */
+        res->words[i]=0u;
     }
+
+
+    int unit_shift = shift%BITS_PER_WORD;
+    for (int output_index = shift/BITS_PER_WORD; output_index < res->nwords; output_index++) {
+        /* output the result by shifting*/
+
+
+        if (input_index-1>=0 &&input_index-1 < b->nwords) {
+            /* range protection  */
+            overflow=b->words[input_index-1]<<( BITS_PER_WORD- unit_shift);
+        }
+        // sum up the result words
+        res->words[output_index]=overflow+(b->words[input_index]>>unit_shift);
+        input_index++;
+    }
+
+
+
+
 }
 
 // copy value from one Bits object to another
@@ -177,28 +199,28 @@ void setBitsFromString(Bits b, char *bitseq)
     for (int i= b->nwords - 1; i >= 0; i --){
         // tmp store the converted int in this_word
         unsigned int this_word = 0;
-        
+
         // start translating
         for (int power = 0; power < BITS_PER_WORD; power ++){
             if (index - power >= 0){
                 // valid access to the char array
                 this_word += power2(power)*(bitseq[index - power]-'0');
-                
+
             }
             else {
                 // invalid access, break the loop
                 break;
             }
-        
+
         }
         // store this word into the bits
         b->words[i] = this_word;
-        
+
         // decreament of the index;
         index -= BITS_PER_WORD;
-    
-    
-    
+
+
+
     }
 
     //printf("b->nwords = %d this_word = %d\n",b->nwords, b->words[1] );
@@ -212,10 +234,10 @@ void showBits(Bits b)
     //printf("b->words[0] = %d\nb->words[1] = %d\n",b->words[0],b->words[1] );
     for (int i = 0; i < b->nwords; i++) {
         /* convert the int into bit and pint out */
-        
-        
+
+
         unsigned int remain = b->words[i];
-        
+
         for (int p = BITS_PER_WORD-1; p >=0; p--) {
             /* translate algo */
             printf("%d", remain/power2(p) );

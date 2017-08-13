@@ -1,4 +1,4 @@
-CC=dcc
+CC=clang
 CFLAGS=-g -Wall -Werror -std=c99
 
 bitops : bitops.o Bits.o
