@@ -109,17 +109,23 @@ Union32 getBits(char *sign, char *exp, char *frac)
 char *showBits(Word val, char *buf)
 {
     //store the index of buff array, the remain of given val
-    unsigned int buf_index = 0, remain = val;
-    for(;buf_index<32;buf_index ++){
+    unsigned int buf_index = 0,val_pow=0, remain = val;
+    for(;val_pow<32;val_pow ++){
         // convert the answer into char and input it into th buf array
-        if(remain/pow2(31-buf_index)){
+        if(buf_index ==1 || buf_index == 10){
+            buf[buf_index]=' ';
+            buf_index ++;
+        
+        }
+        if(remain/pow2(31-val_pow)){
             buf[buf_index]='1';
         }
         else {
             buf[buf_index]= '0';
         }
+        buf_index ++;
         //recalculate the remain for the next step
-        remain = remain%pow2(31-buf_index);
+        remain = remain%pow2(31-val_pow);
     }
 
 

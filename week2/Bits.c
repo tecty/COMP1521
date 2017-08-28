@@ -122,9 +122,13 @@ void leftShiftBits(Bits b, int shift, Bits res)
         // printf("start_word now is %d\n",start_word );
         // printf("input without overflow is %d\n", b->words[input_index] <<unit_shift);
 
-
-        // calculate the shifting overflow for next bit
-        overflow = b->words[start_word] >>(BITS_PER_WORD-unit_shift);
+        if(BITS_PER_WORD-unit_shift != 32){	
+            // calculate the shifting overflow for next bit
+            overflow = b->words[start_word] >>(BITS_PER_WORD-unit_shift);
+        }
+        else {
+            overflow =0;
+        }
         // decreament the input_index
         input_index --;
     }
@@ -155,7 +159,12 @@ void rightShiftBits(Bits b, int shift, Bits res)
 
         if (input_index-1>=0 &&input_index-1 < b->nwords) {
             /* range protection  */
-            overflow=b->words[input_index-1]<<( BITS_PER_WORD- unit_shift);
+            if(BITS_PER_WORD- unit_shift != 32){
+                overflow=b->words[input_index-1]<<( BITS_PER_WORD- unit_shift);
+            }
+            else {
+                overflow = 0;    
+            }
         }
         // sum up the result words
         res->words[output_index]=overflow+(b->words[input_index]>>unit_shift);
@@ -165,7 +174,7 @@ void rightShiftBits(Bits b, int shift, Bits res)
 
 
 
-}
+}   
 
 // copy value from one Bits object to another
 void setBitsFromBits(Bits from, Bits to)

@@ -21,7 +21,12 @@ int main(void)
 {
     struct _bit_fields x;
 
+    unsigned int *i = (unsigned int *) &x;
+    
+    x.a = 
+
     printf("%ul\n",sizeof(x));
+    
     union float_field y;
     y.bits.c =2;
     y.bits.a =0;
