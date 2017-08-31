@@ -11,6 +11,9 @@ msg3:
 nl:
     #print the new line
     .asciiz "\n"
+fibarr:
+    .word 4
+
 
    .text
 
@@ -56,7 +59,7 @@ main:
 
     #print out the error message
     la $a0, msg3
-    li $v0, 5
+    li $v0, 4
     syscall
 
 
@@ -64,7 +67,23 @@ main:
     j endmain
 enderr:
     #jump point if the input is valid
+    
+    #allocate the array to buffer the fib result
+    # tmp store the a0
+    move $t1, $a0
 
+
+    #find the size should be allocate to buffer
+    mul  $a0, $a0, 4
+    
+    #calling malloc
+    li $v0, 9
+    syscall
+    # save this address into a global variable
+    sw $v0, fibarr
+    
+    #get back the a0 to input in fib
+    move $a0, $t1
 
    jal  fib             # $s0 = fib(n);
    nop
@@ -78,8 +97,8 @@ enderr:
    li   $v0, 1
    syscall
 
-   lw   $a0,nl        # printf("\n");
-   li   $v0, 11
+   la   $a0, nl        # printf("\n");
+   li   $v0, 4
    syscall
 
 
@@ -92,15 +111,6 @@ endmain:
    jr   $ra
 
 
-# int fib(int n)
-# {
-#    if (n < 1)
-#       return 0;
-#    else if (n == 1)
-#       return 1;
-#    else
-#       return fib(n-1) + fib(n-2);
-# }
 
 fib:
    # prologue
@@ -108,7 +118,7 @@ fib:
     sw $ra, -8($sp)
     sw $a0, -12($sp)
     la $fp, -4($sp)
-    addi $sp, $sp, -12
+    addi $sp, $sp, -16
 
     #main part of the function
     li $t0, 1
@@ -130,6 +140,22 @@ zero:
 
 
 bigone:
+
+    # append for algroithm modify 
+    
+    # calculate the offset of the array
+    mul $t0, $a0, 4
+    la $t1, fibarr
+    add $t0, $t0, $t1
+    
+    # pre-load up the value in the big buffer
+    lw $v0, ($t0)
+    # if the v0 is no equal to 0, tells that the number have been calculated
+    # hence end the program by the buffer v0
+    bne $v0, $0, endfib
+
+
+
     # ... add a suitable prologue
     # function body
     move $v0, $0
@@ -137,8 +163,9 @@ bigone:
     addi $a0, $a0, -1
     jal fib
 
-    #save the return at t0
-    addi $t0, $v0, 0
+    #save the return at stack
+    sw $v0, -12($fp)
+    #addi $t0, $v0, 0
 
     #clear v0
     move $v0, $0
@@ -147,13 +174,27 @@ bigone:
     jal fib
     addi $t1, $v0, 0
 
+
+    # get the fib(n-1) from stack
+    lw $t0, -12($fp)
+
     #add fib(n-1) fib(n-2) together
     add $v0, $t0, $t1
     #end of this fib
 
 
 endfib:
-   # epilogue
+    # write the result into buffer
+    lw $a0, -8($fp)
+    mul $t0, $a0, 4
+    la $t1, fibarr
+    add $t0, $t0, $t1
+    #save the result into buffer
+    sw $v0, ($t0)
+
+
+
+    # epilogue
     lw $ra, -4($fp)
     lw $a0, -8($fp)
     la $sp, 4($fp)
