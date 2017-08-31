@@ -8,6 +8,9 @@ msg2:
 msg3:
     # error message
     .asciiz "n must be > 0\n"
+nl:
+    #print the new line
+    .asciiz "\n"
 
    .text
 
@@ -75,7 +78,7 @@ enderr:
    li   $v0, 1
    syscall
 
-   li   $a0, '\n'       # printf("\n");
+   lw   $a0,nl        # printf("\n");
    li   $v0, 11
    syscall
 
@@ -108,15 +111,21 @@ fib:
     addi $sp, $sp, -12
 
     #main part of the function
-    bgtz $a0, validIn
+    li $t0, 1
+    #if input > 1, go to valid input
+    bgt $a0,$t0 , bigone 
+    
+    # if input != 0 not goto zero, return 1
+    bne $a0, $t0, zero
+    #return 1
+    li $v0, 1
+    j endfib
+    
+zero:
     #return 0 if n <0
     addi $v0, $0, 0
 
     j endfib
-
-validIn:
-    
-
 
 
 
