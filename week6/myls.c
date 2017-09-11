@@ -12,14 +12,20 @@
 #include <sys/types.h>
 #include <error.h>
 #include <errno.h>
+#include <dirent.h>
+
 
 #define MAXDIRNAME 100
 #define MAXFNAME   200
 #define MAXNAME    20
+#define MAX_STATUS_COUNT 200
+
 
 char *rwxmode(mode_t, char *);
 char *username(uid_t, char *);
 char *groupname(gid_t, char *);
+
+
 
 int main(int argc, char *argv[])
 {
@@ -57,42 +63,100 @@ int main(int argc, char *argv[])
     
     
     // read directory entries
-    struct dirent *entry; 
+    struct dirent *entry[MAX_STATUS_COUNT];
+    
+    int count_entry = 0; 
     // readthough all the entry in the directory 
-    while((entry = readdir(df))!= NULL){
-        if (entry->d_name[0] == '.'){
+    while((entry[count_entry] = readdir(df))!= NULL){
+        if (entry[count_entry]->d_name[0] == '.'){
             // filter the first charater is .
             continue ;
         }
-        // get the file name with directory 
-        char fileLo[255];
-        sprintf(fileLo, "%s/%s", dirname, entry->d_name);
         
-        // var to store the stat struct 
-        struct stat sb;
+        // add one for each recorded file 
+        count_entry ++;        
+        
+    }
+    
+    
+    int swap = 1;
+    // sort the array entry 
+    while (swap){
+        // re initial the swap flag
+        swap =  0;
+        for (int i= 0; i < count_entry-1; i++){
+            // search throught the array 
+            if (strcmp(entry[i]->d_name, entry[i+1]->d_name)>0){
+                struct dirent *tmp = entry[i];
+                entry[i]= entry[i+1];
+                entry[i+1] = tmp;
+                swap = 1;
+            }            
+            
+        
+        }
+    }
+   
+    struct stat sb;
+    
+    for (int i = 0; i< count_entry; i++){
+        // get the file name with directory 
+        char fileLo[512];
+        sprintf(fileLo, "%s/%s", dirname, entry[i]->d_name);
+
+
+        // print the information of all sorted entry 
         if (lstat(fileLo, &sb) == -1) {
             // try to get the information of this file
             perror("stat");
             exit(EXIT_FAILURE);
         }
 
+
+        // alloc enought space for file name to show 
+        char fileName[512];
+        // give it the basic value of file name;
+        strcpy(fileName, entry[i]->d_name);
         
-        // print the information of this entry
+        
+        // try to read the real address if it is a symbolic link 
+        if ((sb.st_mode& S_IFMT)==S_IFLNK){
+            char addr[255]="";
+            printf("%s",addr);
+            readlink(fileLo, addr,255);
+            //printf("%s\n",addr);
+            // refresh the fileName to print 
+            //printf("%s\n",addr);
+            
+            strcat(fileName, " -> ");
+            strcat(fileName, addr);
+            
+            strcat(fileName, "\0");
+            
+        
+        } 
+        
+    
+        
         printf("%s  %-8.8s %-8.8s %8lld  %s\n",
                rwxmode(sb.st_mode, mode),
                username(sb.st_uid, uname),
                groupname(sb.st_gid, gname),
                (long long)sb.st_size,
-               entry->d_name);     
+               fileName); 
+    
+        //printf("%s", fileName);
     }
     
-    
-    
-    
+       
     // finish up
     closedir(df); // UNCOMMENT this line
     return EXIT_SUCCESS;
 }
+
+
+
+
 
 // convert octal mode to -rwxrwxrwx string
 char *rwxmode(mode_t mode, char *str)
@@ -104,8 +168,8 @@ char *rwxmode(mode_t mode, char *str)
     // determine the file type
     switch (mode& S_IFMT){
     case S_IFREG:strcat(str,"-");break;
-    case S_IFLNK:strcat(str,"d");break;
-    case S_IFDIR:strcat(str,"l");break;
+    case S_IFLNK:strcat(str,"l");break;
+    case S_IFDIR:strcat(str,"d");break;
     // unknown file type for this iteration
     default: strcat(str,"?"); break;
     }
