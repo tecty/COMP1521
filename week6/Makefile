@@ -1,6 +1,6 @@
 # Makefile for COMP1521 Lab06
 
-CC=dcc
+CC=clang
 #CC=gcc
 CFLAGS=-Wall -Werror
 LDFLAGS=-lbsd
