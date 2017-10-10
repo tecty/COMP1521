@@ -61,7 +61,71 @@ int main(int argc, char *argv[], char *envp[])
       }
       else{
           /* here is child process */
-          execute(tokenise(line," "),path,envp);
+          // a way to do the pipe
+          char **commands  =  tokenise(line,"|");
+
+          // store the file descripter
+          int pip[2] ={0};
+        //   // the pipe for this process and its child
+        //   int my_parent = -1;
+        //   int my_child = -1;
+
+        //   for (int i = 0; commands[i] != NULL; i++) {
+        //       /* for each possible commands, fork it */
+        //       if (commands[i+1]!= NULL) {
+        //           /* create a pipe for this programe and next programe */
+        //           pipe(pipe);
+        //       }
+        //       else{
+        //           /* Here is child commands */
+        //           execute(tokenise(commands[0]," "),path,envp);
+        //       }
+          //
+        //       if (fork()== 0) {
+        //           /* here is child process, run the 1st to the last-1 command */
+        //           execute(tokenise(commands[0]," "),path,envp);
+        //       }
+          //
+        //   }
+
+        for (int i = 0; commands[i] != NULL; i++) {
+            /* print all the pip */
+            printf("%s\n",commands[i] );
+        }
+
+
+        if (commands[1] != NULL) {
+            /* here is a pipe of two commands*/
+            pipe(pip);
+            if (fork()!= 0) {
+                /* here will run the first commands */
+                // close child's pip
+                // close(pip[1]);
+                printf("%d\n", pip[0]);
+                // open the pip as stdout
+                dup2(pip[0],STDOUT_FILENO);
+                execute(tokenise(commands[0]," "),path,envp);
+
+            }
+            else{
+                /* here is a child process, 2nd commands */
+                // close parent's pip
+                // close(pip[0]);
+                printf("%d\n",pip[1] );
+                // open the pip as stdout
+                dup2(pip[2],STDIN_FILENO);
+                execute(tokenise(commands[1]," "),path,envp);
+
+            }
+
+        }
+        else{
+            // the command not has pip execute
+            execute(tokenise(commands[0]," "),path,envp);
+
+        }
+
+
       }
 
 
@@ -77,12 +141,17 @@ void execute(char **args, char **path, char **envp)
 {
     // implement the find-the-executable and execve() it code
     char *command = NULL;
+    // for (int i = 0; args[i]!= NULL; i++) {
+    //     /* show all the args */
+    //     printf("%s\n",args[i] );
+    // }
+
     if (args[0][0]== '/' || args[0][0] == '.') {
         /* start with specify path */
 
         if (isExecutable(args[0])) {
             /* the specify file is executable */
-            command = args[0];
+            command = strdup(args[0]);
         }
 
     }
@@ -109,6 +178,8 @@ void execute(char **args, char **path, char **envp)
     else{
         // execute the file
         execve(command,args,envp);
+        // free the duplicate string
+        free(command);
     }
 }
 
