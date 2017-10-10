@@ -50,7 +50,21 @@ int main(int argc, char *argv[], char *envp[])
       if (strcmp(line,"exit") == 0) break;
       if (strcmp(line,"") == 0) { printf("mysh$ "); continue; }
 
-      // TODO: implement the tokenise/fork/execute/cleanup code
+      // implement the tokenise/fork/execute/cleanup code
+      if ((pid = fork())!= 0) {
+          /* here is parent process */
+          wait(&stat);
+          if (stat< 0) {
+              /* print the error */
+              perror("Error msg:");
+          }
+      }
+      else{
+          /* here is child process */
+          execute(tokenise(line," "),path,envp);
+      }
+
+
 
       printf("mysh$ ");
    }
@@ -61,7 +75,41 @@ int main(int argc, char *argv[], char *envp[])
 // execute: run a program, given command-line args, path and envp
 void execute(char **args, char **path, char **envp)
 {
-   // TODO: implement the find-the-executable and execve() it code
+    // implement the find-the-executable and execve() it code
+    char *command = NULL;
+    if (args[0][0]== '/' || args[0][0] == '.') {
+        /* start with specify path */
+
+        if (isExecutable(args[0])) {
+            /* the specify file is executable */
+            command = args[0];
+        }
+
+    }
+    else{
+        // try to search this command in the bin folders
+        while (path != NULL) {
+            /* search for the location */
+            char tmp[100];
+            // assemble the location of possible executable file
+            sprintf(tmp, "%s/%s",path[0], args[0]);
+            if (isExecutable(tmp)) {
+                /* the file is found */
+                command = strdup(tmp);
+                break;
+            }
+            path++;
+        }
+    }
+
+    if (command == NULL) {
+        /* command not found */
+        printf("Command not found\n" );
+    }
+    else{
+        // execute the file
+        execve(command,args,envp);
+    }
 }
 
 // isExecutable: check whether this process can execute a file
