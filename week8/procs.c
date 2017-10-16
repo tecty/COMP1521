@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <sys/file.h>
 
 #define MAXLINE BUFSIZ
 
@@ -33,6 +34,7 @@ int main(void)
 
    if (fork() != 0) {
        ignore();
+       flock(0,LOCK_EX);
       copyInput("Parent");
       // ignore the keyboard interrupt
    }
@@ -48,14 +50,16 @@ int main(void)
 
 void copyInput(char *name)
 {
-   pid_t mypid = getpid();
-   char  line[MAXLINE];
-   printf("%s (%d) ready\n", name, mypid);
-   while (fgets(line, MAXLINE, stdin) != NULL) {
-      printf("%s: %s", name, line);
-    //   sleep(random()%3);
-      sleep(1);
-   }
-   printf("%s quitting\n", name);
-   return;
+    pid_t mypid = getpid();
+    char  line[MAXLINE];
+    printf("%s (%d) ready\n", name, mypid);
+    while ( flock(0,LOCK_EX)==0 && fgets(line, MAXLINE, stdin) != NULL) {
+        printf("%s: %s", name, line);
+        //   sleep(random()%3);
+        // not locking, go with another processes
+        flock(0,LOCK_UN);
+        // sleep(1);
+    }
+    printf("%s quitting\n", name);
+    return;
 }
