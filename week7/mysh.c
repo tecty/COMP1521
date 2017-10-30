@@ -66,27 +66,6 @@ int main(int argc, char *argv[], char *envp[])
 
           // store the file descripter
           int pip[2] ={0};
-        //   // the pipe for this process and its child
-        //   int my_parent = -1;
-        //   int my_child = -1;
-
-        //   for (int i = 0; commands[i] != NULL; i++) {
-        //       /* for each possible commands, fork it */
-        //       if (commands[i+1]!= NULL) {
-        //           /* create a pipe for this programe and next programe */
-        //           pipe(pipe);
-        //       }
-        //       else{
-        //           /* Here is child commands */
-        //           execute(tokenise(commands[0]," "),path,envp);
-        //       }
-          //
-        //       if (fork()== 0) {
-        //           /* here is child process, run the 1st to the last-1 command */
-        //           execute(tokenise(commands[0]," "),path,envp);
-        //       }
-          //
-        //   }
 
         for (int i = 0; commands[i] != NULL; i++) {
             /* print all the pip */
@@ -97,14 +76,14 @@ int main(int argc, char *argv[], char *envp[])
         if (commands[1] != NULL) {
             /* here is a pipe of two commands*/
             pipe(pip);
-            if (fork()!= 0) {
-                /* here will run the first commands */
-                // close child's pip
-                // close(pip[1]);
-                printf("%d\n", pip[0]);
-                // open the pip as stdout
-                dup2(pip[0],STDOUT_FILENO);
-                execute(tokenise(commands[0]," "),path,envp);
+        if (fork()!= 0) {
+            /* here will run the first commands */
+            // close child's pip
+            // close(pip[1]);
+            printf("%d\n", pip[0]);
+            // open the pip as stdout
+            dup2(pip[0],1);
+            execute(tokenise(commands[0]," "),path,envp);
 
             }
             else{
@@ -113,7 +92,7 @@ int main(int argc, char *argv[], char *envp[])
                 // close(pip[0]);
                 printf("%d\n",pip[1] );
                 // open the pip as stdout
-                dup2(pip[2],STDIN_FILENO);
+                dup2(pip[2],0);
                 execute(tokenise(commands[1]," "),path,envp);
 
             }
