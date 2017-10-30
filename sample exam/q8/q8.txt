@@ -1,0 +1,5 @@
+A.  open(FilePath, O_RDONLY)
+A.  open(FilePath, O_APPEND)
+A.  open(FilePath, O_WRONLY)
+A.  open(FilePath, O_RDONLY | O_CREAT)
+A.  open(FilePath, O_WRONLY | O_CREAT)
