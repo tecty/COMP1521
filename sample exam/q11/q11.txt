@@ -1,0 +1,6 @@
+A.  Session disconnected, the programme might die or continue what it's doing
+until it finish.
+B.  (Keybord) interupt, the programme will be killed.
+C.  Calculation Error, programme will die.
+D.  Sigment Error, the programme will be killed.
+E.  Stop Signal, the programme will suspend. 

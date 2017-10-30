@@ -1,0 +1,12 @@
+A.  1) Limited on the number of threads was encounted.
+    2) The caller is under the schedule deadine, due to the polic doesn't have
+    the reset-on-fork flag set. 
+    3) Couldn't create the kernel structure by the limited memory.
+    4) Fork is not support in that platform.
+
+B.  When the programme call by the execve die or have error on runing the
+programme.
+
+C.  If success it's 0 or define by the prgrammes' main. When it has error, it
+return -1.
+
