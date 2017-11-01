@@ -20,9 +20,44 @@ everyKth:
    # add the code to save them here
 
 # function body
-# locals: ...
 
-   # add code for your everyKth function here
+	move $t0, $0
+	move $t1, $0
+
+# set the t4 always be 4
+	addi $t4, $0, 4
+
+forLoop:
+	bge $t0, $a1, endForLoop
+
+	div $t0, $a2
+	mfhi $t2
+	bnez $t2, endIf
+# the i%k == 0
+	
+# get the location of the src[i]
+	mul $t2, $t0, $t4
+	add $t2, $t2, $a0
+	lw $t2, ($t2)
+
+# get the location of the dest[j]
+	mul $t3, $t1, $t4
+	add $t3, $t3, $a3
+# svae the src[i] to dest[j]
+	sw $t2, ($t3)
+
+# increament the j
+	addi $t1, $t1,  1
+
+endIf:
+
+	addi $t0, $t0, 1
+	j forLoop
+endForLoop:
+
+# set the return value
+	move $v0, $t1
+
 
 # epilogue
    # if you saved more than two $s? registers
