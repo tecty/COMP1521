@@ -73,8 +73,25 @@ void showStuRec(StuRec s)
 	printf("%7d %s %4d %0.1f\n", s->id, s->name, s->degree, s->wam);
 }
 
+int stuCmp(const void *a, const void *b){
+    sturec_t * sa = (sturec_t *)a;
+    sturec_t * sb = (sturec_t *)b;
+    if (sa->wam > sb->wam) {
+        return -1;
+    }
+    else if (sa->wam == sb->wam) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+
+}
+
+
 // sort students records by WAM, then by name
 void sortByWAM(Students ss)
 {
-	// TODO
+    qsort(ss->recs, ss->nstu, sizeof(sturec_t),stuCmp);
+
 }

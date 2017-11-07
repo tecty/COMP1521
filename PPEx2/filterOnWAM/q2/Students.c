@@ -77,5 +77,23 @@ void showStuRec(StuRec s)
 //   students with WAM < minWAM from original list
 Students filterOnWAM(Students ss, float minWAM)
 {
-	return NULL; // TODO ... replace this line by your code
+    Students ns = malloc(sizeof(students_t));
+    ns->nstu = 0;
+    ns->recs = malloc(sizeof(sturec_t));
+
+    for (int i = 0; i < ss->nstu; i++) {
+        if (ss->recs[i].wam >= minWAM) {
+            // preserve this students
+            ns->recs = realloc(ns->recs, (ns->nstu+1)*sizeof(sturec_t));
+
+            // copy the data from the old student
+            ns->recs[ns->nstu].id = ss->recs[i].id;
+            ns->recs[ns->nstu].degree = ss->recs[i].degree;
+            ns->recs[ns->nstu].wam = ss->recs[i].wam;
+            strcpy(ns->recs[ns->nstu].name, ss->recs[i].name);
+            ns->nstu ++;
+        }
+    }
+
+    return ns;
 }
