@@ -70,13 +70,26 @@ void showStuRec(StuRec s)
 
 
 int stuCmp(const void *a, const void *b){
-	sturec_t ** as = (sturec_t **) a;
-	sturec_t ** bs = (sturec_t **) b;
-	return strcmp((*as)->name, (*bs)->name);
+    //printf("imhere");
+	sturec_t * as = (sturec_t *) a;
+	sturec_t * bs = (sturec_t *) b;
+	return strcmp((*as).name, (*bs).name);
 }
 
 void sortByName(Students ss)
 {
-	qsort(ss->recs,ss->nstu,sizeof(sturec_t *),stuCmp);
-
+	qsort(ss->recs,ss->nstu,sizeof(sturec_t),stuCmp);
+    //int swap = 1;
+    //StuRec tmp;
+    //while(swap){
+    //    swap = 0;
+    //    for (int i = 0; i < ss->nstu-1; i++) {
+    //        if (strcmp(ss->recs[i],ss->recs[i+1])) {
+    //           tmp = ss->recs[i];
+    //           ss->recs[i] = ss->recs[i+1];
+    //           ss->recs[i+1] = tmp;
+    //           swap ++;
+    //        }
+    //    }
+    //}
 }
