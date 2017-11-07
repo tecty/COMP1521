@@ -22,13 +22,6 @@ typedef struct _students {
     StuRec recs;
 } students_t;
 
-// read text from input (FILE *)
-// write sturec_t structs to output (filedesc)
-int makeStuFile(char *inFile, char *outFile)
-{
-	return 0;
-	// TODO
-}
 
 // build a collection of student records from a file descriptor
 Students getStudents(int in)
@@ -63,6 +56,41 @@ Students getStudents(int in)
 	return ss;
 }
 
+// read text from input (FILE *)
+// write sturec_t structs to output (filedesc)
+int makeStuFile(char *inFile, char *outFile)
+{
+	FILE *in = fopen(inFile, "r");
+    if (in == NULL) {
+        return -1;
+    }
+    int out = open(outFile,O_CREAT| O_WRONLY,0644);
+    if (out<0) {
+        return -2;
+    }
+    
+    // to record the tmp value
+    sturec_t *st = malloc(sizeof(sturec_t));
+
+    while (!feof(in)) {
+        int scan_count;
+        if ((scan_count=fscanf(in,"%d %s %d %f\n",&(st->id),st->name, &(st->degree),&(st->wam)))== 4) {
+            //correctly reading
+            write(out, st, sizeof(sturec_t));
+        }
+        else {
+            printf("return here, count %d\n",scan_count);
+            return -3;
+        }
+    }
+
+
+    fclose(in);
+
+
+
+    return 0;
+}
 // show a list of student records pointed to by ss
 void showStudents(Students ss)
 {
